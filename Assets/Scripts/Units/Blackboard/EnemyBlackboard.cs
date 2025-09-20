@@ -28,6 +28,9 @@ public class EnemyBlackboard
     public bool isAttacking;
     public bool isScouting;
 
+    public MiniBossSpawnPoint spawnPoint;
+
+
     private Dictionary<string, object> data = new Dictionary<string, object>();
     public void SetData(string key, object value)
     {
