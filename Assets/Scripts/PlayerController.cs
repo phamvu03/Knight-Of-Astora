@@ -159,6 +159,7 @@ public class PlayerController : MonoBehaviour
             StartDash();
             Heal();
         }
+        CameraSetting();
 
         //replace localScale when compute in roll & dash 
         angleInRadian = transform.eulerAngles.y * Mathf.Deg2Rad;

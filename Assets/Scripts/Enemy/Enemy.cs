@@ -7,11 +7,7 @@ public class Enemy : MonoBehaviour
 {
     [Header("Basic Stats:")]
     [SerializeField] protected float health;
-    [SerializeField] protected float recoilLength;
-    [SerializeField] protected float recoilFactor;
-    [SerializeField] protected bool isRecoiling = false;
     [SerializeField] protected bool isFacingRight = false;
-    [SerializeField] protected float recoilTimer;
     //[SerializeField] protected float attackCooldown = 2f;
     [SerializeField] protected AudioClip dmgSoundClip;
 
@@ -76,35 +72,14 @@ public class Enemy : MonoBehaviour
         anim = GetComponent<Animator>();
     }
     protected virtual void Update()
-    {
-        if (isRecoiling)
-        {
-            if (recoilTimer < recoilLength)
-            {
-                recoilTimer += Time.deltaTime;
-            }
-            else
-            {
-                isRecoiling = false;
-                recoilTimer = 0;
-            }
-        }
-        else
-        {
-            UpdateEnemyState();
-        }
+    {   
+        UpdateEnemyState();
     }
 
     public virtual void EnemyHit(float damage, Vector2 hitDirection, float hitForce)
     {
         health -= damage;
-        
-        if (!isRecoiling)
-        {
-            SoundFXManager.instance.PlaySoundFX(dmgSoundClip, transform, 1f);
-            rb.AddForce(hitForce * recoilFactor * hitDirection);
-            isRecoiling = true;
-        }
+        SoundFXManager.instance.PlaySoundFX(dmgSoundClip, transform, 1f);
     }
 
     public void Heal(float amount)

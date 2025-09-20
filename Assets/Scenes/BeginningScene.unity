@@ -194,6 +194,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: 'Blue_Archer '
       objectReference: {fileID: 0}
+    - target: {fileID: 8502536641591720966, guid: 4f100a6d7ea758242bcce4e9c4a31590, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -214,6 +218,18 @@ PrefabInstance:
     - target: {fileID: 2369475197144453301, guid: 87d563383cb7369468ea9c95a8245429, type: 3}
       propertyPath: m_IsActive
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4913725192857112764, guid: 87d563383cb7369468ea9c95a8245429, type: 3}
+      propertyPath: health
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 4913725192857112764, guid: 87d563383cb7369468ea9c95a8245429, type: 3}
+      propertyPath: recoilFactor
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 4913725192857112764, guid: 87d563383cb7369468ea9c95a8245429, type: 3}
+      propertyPath: recoilLength
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8828412070961522643, guid: 87d563383cb7369468ea9c95a8245429, type: 3}
       propertyPath: m_LocalPosition.x
@@ -17130,6 +17146,14 @@ PrefabInstance:
     - target: {fileID: 2369475197144453301, guid: 87d563383cb7369468ea9c95a8245429, type: 3}
       propertyPath: m_Name
       value: Skeleton  (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 4913725192857112764, guid: 87d563383cb7369468ea9c95a8245429, type: 3}
+      propertyPath: recoilFactor
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4913725192857112764, guid: 87d563383cb7369468ea9c95a8245429, type: 3}
+      propertyPath: recoilLength
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8828412070961522643, guid: 87d563383cb7369468ea9c95a8245429, type: 3}
       propertyPath: m_LocalPosition.x

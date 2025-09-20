@@ -126,7 +126,6 @@ public class AllyUnitController : MonoBehaviour
         animator.SetBool("IsMoving", true);
 
         // Check if we've reached the current patrol point
-        Debug.Log(Vector2.Distance(transform.position, targetPoint.position));
         if (Vector2.Distance(transform.position, targetPoint.position) <= 2.2f)
         {
             rb.velocity = Vector2.zero;
@@ -229,8 +228,8 @@ public class AllyUnitController : MonoBehaviour
             rb.velocity = Vector2.zero;
             return true;
         }
-        // Clean up destroyed or missing enemies or out of vision range
-        blackboard.detectedEnemies.RemoveAll(enemy => enemy == null || enemy.Equals(null) || Mathf.Abs(transform.position.x - blackboard.currentTarget.position.x) > viewDistance);
+        // Clean up destroyed or missing enemies
+        blackboard.detectedEnemies.RemoveAll(enemy => enemy == null || enemy.Equals(null));
         // If no enemies detected, reset to patrol
         if (blackboard.detectedEnemies.Count == 0)
         {
@@ -246,7 +245,7 @@ public class AllyUnitController : MonoBehaviour
         foreach (var enemy in blackboard.detectedEnemies)
         {
             if (enemy == null || enemy.Equals(null)) continue;
-            float dist = Mathf.Abs(enemy.position.x - transform.position.x); // Only x axis
+            float dist = Mathf.Abs(enemy.position.x - transform.position.x);
             if (dist < minDist && dist <= blackboard.engageRange)
             {
                 minDist = dist;
@@ -309,7 +308,7 @@ public class AllyUnitController : MonoBehaviour
                     rb.velocity = new Vector2(runDir * blackboard.walkSpeed, 0);
                     animator.SetBool("IsMoving", true);
                     // Flip sprite to face away from enemy while running
-                    if ((runDir > 0 && !facingRight) || (runDir < 0 && facingRight))
+                    if ((runDir > 0 && !facingRight || runDir < 0 && facingRight) && !animator.GetCurrentAnimatorStateInfo(0).IsName("Archer_attack"))
                     {
                         Flip();
                     }
@@ -483,7 +482,6 @@ public class AllyUnitController : MonoBehaviour
         if (visionOrigin == null) return;
         blackboard.detectedEnemies.RemoveAll(enemy =>
             enemy == null || Vector2.Distance(transform.position, enemy.position) > viewDistance);
-        Debug.Log(blackboard.detectedEnemies.Count);
         float startAngle = facingRight ? -blackboard.fieldOfView / 2 : 180 - blackboard.fieldOfView / 2;
         float endAngle = facingRight ? blackboard.fieldOfView / 2 : 180 + blackboard.fieldOfView / 2;
         for (int i = 0; i < rayCount; i++)

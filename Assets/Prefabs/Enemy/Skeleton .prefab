@@ -195,7 +195,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 5
-  recoilLength: 0.3
+  recoilLength: 1
   recoilFactor: 0.5
   isRecoiling: 0
   isFacingRight: 0

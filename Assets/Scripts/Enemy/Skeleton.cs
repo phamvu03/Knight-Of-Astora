@@ -269,16 +269,10 @@ public class Skeleton : Enemy
     {
         if (!isDeath)
         {
-            StartCoroutine(PerformDeath());
+            isDeath = true;
+            rb.velocity = Vector2.zero;
+            Destroy(gameObject, 1f);
         }
-    }
-    IEnumerator PerformDeath()
-    {
-        isDeath = true;
-        rb.velocity = Vector2.zero;
-        anim.SetTrigger("Death");
-        Destroy(gameObject, 1f);
-        yield return null;
     }
     void Stunned()
     {
@@ -287,11 +281,8 @@ public class Skeleton : Enemy
             rb.velocity = Vector2.zero;
             return;
         }
-
-        Transform nearestTarget = FindNearestEnemyTarget();
-        if (nearestTarget != null)
+        if (currentTarget != null)
         {
-            currentTarget = nearestTarget;
             ChangeState((EnemyStates)SkeletonExtraState.CounterAttack);
             return;
         }
@@ -315,15 +306,16 @@ public class Skeleton : Enemy
     }
     public override void EnemyHit(float damage, Vector2 hitDirection, float hitForce)
     {
-        anim.SetTrigger("Stunned");
+        
         base.EnemyHit(damage, hitDirection, hitForce);
         if (health <= 0)
         {
-            ChangeState(EnemyStates.DEATH);
             anim.SetTrigger("Death");
+            ChangeState(EnemyStates.DEATH);
         }
         else
         {
+            anim.SetTrigger("Stunned");
             currentTarget = FindNearestEnemyTarget();
             ChangeState(EnemyStates.STUNNED);
         }
@@ -350,7 +342,6 @@ public class Skeleton : Enemy
         float distanceToTarget = Vector2.Distance(transform.position, currentTarget.position);
         if (distanceToTarget > attackRange)
         {
-            // Move towards target
             ChangeState(EnemyStates.CHASE);
         }
         else
@@ -370,8 +361,8 @@ public class Skeleton : Enemy
     {
         if (collision.CompareTag("Water"))
         {
-            ChangeState(EnemyStates.DEATH);
             anim.SetTrigger("Death");
+            ChangeState(EnemyStates.DEATH);
         }
     }
 }

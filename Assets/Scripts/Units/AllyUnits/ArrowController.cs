@@ -23,7 +23,6 @@ public class ArrowController : MonoBehaviour
     {
         if (target != null && other.transform == target && other.CompareTag("Enemy"))
         {
-            Debug.Log("called");
             var enemy = other.GetComponent<Enemy>();
             if (enemy != null)
             {
