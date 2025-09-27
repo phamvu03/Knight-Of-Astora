@@ -145,56 +145,48 @@ public class AllyUnitController : MonoBehaviour
         animator.SetBool("IsMoving", false);
     }
 
-    public bool InvestigateSound()
-    {
-        // Move to investigate sound source
-        if (!blackboard.isInvestigatingSoundSource)
-            return true;
-        Vector2 directionToSound = (blackboard.lastSoundPosition - (Vector2)transform.position).normalized;
-
-        // Turn towards the sound
-        if (directionToSound.x > 0 && !facingRight || directionToSound.x < 0 && facingRight)
-        {
-            Flip();
-        }
-
-        // Move towards the sound source
-        if (Vector2.Distance(transform.position, blackboard.lastSoundPosition) > 0.5f)
-        {
-            float dirX = Mathf.Sign(blackboard.lastSoundPosition.x - transform.position.x);
-            rb.velocity = new Vector2(dirX * blackboard.walkSpeed, 0);
-            animator.SetBool("IsMoving", true);
-            return false;
-        }
-
-        // Reached the sound source
-        rb.velocity = Vector2.zero;
-        animator.SetBool("IsMoving", false);
-        blackboard.ResetAlertState();
-        return true;
-    }
-
     public bool WarnAction()
     {
+        Debug.Log("Warn-ing");
         // Move to warn position if not already there, move slow as half of normal speed, stop at warn position 2 distance long
         if (blackboard.detectedEnemies.Count > 0)
         {
             Vector2 enemyPos = blackboard.detectedEnemies[0].position;
             OnWarn?.Invoke(enemyPos);
-            blackboard.isWarning = true;
-            blackboard.warnedEnemyPosition = enemyPos;
+            if (!blackboard.isWarning)
+            {
+                Debug.Log("called");
+                blackboard.isWarning = true;
+            }
+                
+            
+            // Set current target to closest enemy for next engage phase
+            Transform closestEnemy = null;
+            float minDist = float.MaxValue;
+            foreach (var enemy in blackboard.detectedEnemies)
+            {
+                if (enemy == null) continue;
+                float dist = Vector2.Distance(transform.position, enemy.position);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    closestEnemy = enemy;
+                }
+            }
+            blackboard.currentTarget = closestEnemy;
         }
+        
         if (blackboard.isWarning && blackboard.warnedEnemyPosition != Vector2.zero)
         {
             Vector2 dir = (blackboard.warnedEnemyPosition - (Vector2)transform.position).normalized;
             float dist = Vector2.Distance(transform.position, blackboard.warnedEnemyPosition);
             float stopDist = 2f;
+            
             if (dist > stopDist)
             {
                 float dirX = Mathf.Sign(blackboard.warnedEnemyPosition.x - transform.position.x);
-                rb.velocity = new Vector2(dirX * (blackboard.walkSpeed * 0.5f), 0);
+                rb.velocity = new Vector2(dirX * (blackboard.walkSpeed), 0);
                 animator.SetBool("IsMoving", true);
-                // Flip sprite to face warn position
                 if (dirX > 0 && !facingRight || dirX < 0 && facingRight)
                 {
                     Flip();
@@ -205,15 +197,15 @@ public class AllyUnitController : MonoBehaviour
             {
                 rb.velocity = Vector2.zero;
                 animator.SetBool("IsMoving", false);
+                
                 // If no enemy detected anymore, back to patrol
                 if (blackboard.detectedEnemies.Count == 0)
                 {
-                    blackboard.isWarning = false;
-                    blackboard.warnedEnemyPosition = Vector2.zero;
-                    return true; // Back to patrol
+                    blackboard.ResetWarnState();
+                    blackboard.currentTarget = null;
+                    return true;
                 }
-                // Else, do next move in code (engage, etc.)
-                return false;
+                return true;
             }
         }
         return false;
@@ -221,27 +213,49 @@ public class AllyUnitController : MonoBehaviour
 
     public bool EngageAction()
     {
-        // Panic if morale is too low
-        if (blackboard.morale < blackboard.moraleThreshold)
-        {
-            animator.SetTrigger("Panic");
-            rb.velocity = Vector2.zero;
-            return true;
-        }
+        Debug.Log("Engage-ing");
         // Clean up destroyed or missing enemies
-        blackboard.detectedEnemies.RemoveAll(enemy => enemy == null || enemy.Equals(null));
-        // If no enemies detected, reset to patrol
+        blackboard.detectedEnemies.RemoveAll(enemy =>
+            enemy == null || Vector2.Distance(transform.position, enemy.position) > viewDistance);
+
+        // If no enemies detected but we have a current target, try to pursue
+        if (blackboard.detectedEnemies.Count == 0 && blackboard.currentTarget != null)
+        {
+            // Start pursuing if target still exists but out of sight
+            if (blackboard.currentTarget.gameObject.activeInHierarchy)
+            {
+                if(blackboard.currentTarget.position != Vector3.zero)
+                    blackboard.lastKnownEnemyPosition = blackboard.currentTarget.position;
+                blackboard.isPursuing = true;
+                blackboard.searchTimer = 0f;
+                blackboard.ResetWarnState(); // Reset warning when starting pursuit
+                return true; // Switch to PursueAction
+            }
+            else
+            {
+                // Target is destroyed, reset to patrol
+                blackboard.ResetEngageState();
+                blackboard.ResetWarnState();
+                rb.velocity = Vector2.zero;
+                animator.SetBool("IsMoving", false);
+                return true;
+            }
+        }
+        
+        // If no enemies detected and no current target, reset to patrol
         if (blackboard.detectedEnemies.Count == 0)
         {
             blackboard.currentTarget = null;
             blackboard.ResetEngageState();
+            blackboard.ResetWarnState();
             rb.velocity = Vector2.zero;
             animator.SetBool("IsMoving", false);
             return true;
         }
+        
         // Find closest enemy in range (distance only on x axis)
         Transform target = null;
-        float minDist = float.MaxValue;
+        float minDist = float.MaxValue;  
         foreach (var enemy in blackboard.detectedEnemies)
         {
             if (enemy == null || enemy.Equals(null)) continue;
@@ -253,37 +267,43 @@ public class AllyUnitController : MonoBehaviour
             }
         }
         blackboard.currentTarget = target;
+        
         if (blackboard.currentTarget == null || blackboard.currentTarget.Equals(null) ||
             !blackboard.currentTarget.gameObject.activeInHierarchy)
         {
             blackboard.currentTarget = null;
             blackboard.ResetEngageState();
+            blackboard.ResetWarnState();
             rb.velocity = Vector2.zero;
             animator.SetBool("IsMoving", false);
             return true;
         }
-        // Check if target is too far, reset to patrol
+        
+        // Check if target is too far, start pursuing instead of giving up immediately
         float maxChaseDist = blackboard.chaseRadius;
         float distToTarget = Vector2.Distance(transform.position, target.position);
         if (distToTarget > maxChaseDist)
         {
-            blackboard.currentTarget = null;
-            blackboard.ResetEngageState();
-            rb.velocity = Vector2.zero;
-            animator.SetBool("IsMoving", false);
-            return true;
+            // Instead of giving up, start pursuing
+            Debug.Log(blackboard.currentTarget.position);
+            blackboard.lastKnownEnemyPosition = blackboard.currentTarget.position;
+            blackboard.isPursuing = true;
+            blackboard.searchTimer = 0f;
+            blackboard.ResetWarnState(); // Reset warning when starting pursuit
+            return true; // Switch to PursueAction
         }
+        
         Vector2 dirToTarget = new Vector2((target.position - transform.position).normalized.x, 0);
-        float distToTargetX = Mathf.Abs(target.position.x - transform.position.x); // Only x axis
-        // Flip sprite to face target
+        float distToTargetX = Mathf.Abs(target.position.x - transform.position.x);
+        
         if (dirToTarget.x > 0 && !facingRight || dirToTarget.x < 0 && facingRight)
         {
             Flip();
         }
+        
         switch (blackboard.combatType)
         {
             case AllyCombatType.Melee:
-                // Move to enemy and attack if close
                 if (distToTargetX > 1.2f)
                 {
                     rb.velocity = new Vector2(Mathf.Sign(target.position.x - transform.position.x) * blackboard.walkSpeed, 0);
@@ -298,16 +318,14 @@ public class AllyUnitController : MonoBehaviour
                         animator.SetTrigger("Block");
                 }
                 break;
+                
             case AllyCombatType.Ranged:
-                // Maintain safe distance for ranged
                 float safeDist = 6f;
                 if (distToTargetX < safeDist)
                 {
-                    // Keep running away until safe distance is reached
                     float runDir = Mathf.Sign(transform.position.x - target.position.x);
                     rb.velocity = new Vector2(runDir * blackboard.walkSpeed, 0);
                     animator.SetBool("IsMoving", true);
-                    // Flip sprite to face away from enemy while running
                     if ((runDir > 0 && !facingRight || runDir < 0 && facingRight) && !animator.GetCurrentAnimatorStateInfo(0).IsName("Archer_attack"))
                     {
                         Flip();
@@ -315,10 +333,8 @@ public class AllyUnitController : MonoBehaviour
                 }
                 else if (distToTargetX <= blackboard.engageRange)
                 {
-                    // Safe distance reached, stop and attack
                     rb.velocity = Vector2.zero;
                     animator.SetBool("IsMoving", false);
-                    // Flip sprite to face enemy before attacking
                     if ((dirToTarget.x > 0 && !facingRight) || (dirToTarget.x < 0 && facingRight))
                     {
                         Flip();
@@ -330,8 +346,8 @@ public class AllyUnitController : MonoBehaviour
                     }
                 }
                 break;
+                
             case AllyCombatType.Support:
-                // Buff or heal allies in range
                 Collider2D[] allies = Physics2D.OverlapCircleAll(transform.position, blackboard.supportRange);
                 foreach (var col in allies)
                 {
@@ -350,60 +366,82 @@ public class AllyUnitController : MonoBehaviour
 
     public bool PursueAction()
     {
-        // Pursue lost target
+        Debug.Log("Pursue-ing");
+        // Initialize pursuit if not already pursuing
         if (!blackboard.isPursuing && blackboard.currentTarget != null)
         {
             blackboard.isPursuing = true;
-            blackboard.lastKnownEnemyPosition = blackboard.currentTarget.position;
             blackboard.searchTimer = 0f;
         }
-        if (blackboard.currentTarget == null)
+        // If target is found again, go back to engage
+        if (blackboard.currentTarget != null && blackboard.detectedEnemies.Contains(blackboard.currentTarget))
+        {
+            blackboard.ResetPursueState();
+            return true; // Back to engage
+        }
+        // If no current target, search at last known position
+        if (blackboard.currentTarget == null || !blackboard.currentTarget.gameObject.activeInHierarchy)
         {
             blackboard.searchTimer += Time.deltaTime;
-            float dirX = Mathf.Sign(blackboard.lastKnownEnemyPosition.x - transform.position.x);
-            rb.velocity = new Vector2(dirX * blackboard.walkSpeed, 0);
-            animator.SetBool("IsMoving", true);
+            
             Vector2 dir = (blackboard.lastKnownEnemyPosition - (Vector2)transform.position).normalized;
             float dist = Vector2.Distance(transform.position, blackboard.lastKnownEnemyPosition);
+            
             if (dist > 0.5f)
             {
-                rb.velocity = dir * blackboard.walkSpeed;
+                float dirX = Mathf.Sign(blackboard.lastKnownEnemyPosition.x - transform.position.x);
+                rb.velocity = new Vector2(dirX * blackboard.walkSpeed, 0);
                 animator.SetBool("IsMoving", true);
+                
+                if (dirX > 0 && !facingRight || dirX < 0 && facingRight)
+                {
+                    Flip();
+                }
             }
             else
             {
                 rb.velocity = Vector2.zero;
                 animator.SetBool("IsMoving", false);
             }
+            
+            // Give up after max search time
             if (blackboard.searchTimer > blackboard.maxSearchTime)
             {
                 blackboard.ResetPursueState();
-                return true;
+                return true; // Back to patrol
             }
             return false;
         }
-        float distFromStart = Vector2.Distance(transform.position, blackboard.patrolPoints[0].position);
-        if (distFromStart > blackboard.chaseRadius)
+        
+        // Check if we're too far from patrol area
+        if (blackboard.patrolPoints != null && blackboard.patrolPoints.Length > 0 && blackboard.lastKnownEnemyPosition == Vector2.zero)
         {
-            blackboard.ResetPursueState();
-            return true;
+            float distFromStart = Vector2.Distance(transform.position, blackboard.patrolPoints[0].position);
+            if (distFromStart > blackboard.chaseRadius)
+            {
+                blackboard.ResetPursueState();
+                return true; // Back to patrol
+            }
         }
+        Debug.Log("last known enemy pos" + blackboard.lastKnownEnemyPosition);
+        // Move towards current target
         float dirX2 = Mathf.Sign(blackboard.currentTarget.position.x - transform.position.x);
         rb.velocity = new Vector2(dirX2 * blackboard.walkSpeed, 0);
         animator.SetBool("IsMoving", true);
-        Vector2 dirToTarget = (blackboard.currentTarget.position - transform.position).normalized;
+        
         float distToTarget = Vector2.Distance(transform.position, blackboard.currentTarget.position);
-        if (dirToTarget.x > 0 && !facingRight || dirToTarget.x < 0 && facingRight)
+        if (dirX2 > 0 && !facingRight || dirX2 < 0 && facingRight)
         {
             Flip();
         }
-        rb.velocity = dirToTarget * blackboard.walkSpeed;
-        animator.SetBool("IsMoving", true);
+        
+        // If close enough to engage, switch back
         if (distToTarget <= blackboard.engageRange)
         {
             blackboard.ResetPursueState();
-            return true;
+            return true; // Back to engage
         }
+        
         return false;
     }
 
@@ -480,20 +518,25 @@ public class AllyUnitController : MonoBehaviour
     {
         // Vision cone raycast for enemy detection
         if (visionOrigin == null) return;
+        
+        // Remove enemies that are too far or destroyed
         blackboard.detectedEnemies.RemoveAll(enemy =>
             enemy == null || Vector2.Distance(transform.position, enemy.position) > viewDistance);
+
         float startAngle = facingRight ? -blackboard.fieldOfView / 2 : 180 - blackboard.fieldOfView / 2;
         float endAngle = facingRight ? blackboard.fieldOfView / 2 : 180 + blackboard.fieldOfView / 2;
         for (int i = 0; i < rayCount; i++)
         {
             float angle = Mathf.Lerp(startAngle, endAngle, i / (float)(rayCount - 1));
             Vector2 direction = GetVectorFromAngle(angle);
+            
             RaycastHit2D hit = Physics2D.Raycast(
                 visionOrigin.position,
                 direction,
                 viewDistance,
                 enemyLayer | obstacleLayer
             );
+            
             if (hit.collider != null)
             {
                 if (((1 << hit.collider.gameObject.layer) & enemyLayer) != 0)
@@ -501,7 +544,7 @@ public class AllyUnitController : MonoBehaviour
                     Transform enemy = hit.transform;
                     if (!blackboard.detectedEnemies.Contains(enemy))
                     {
-                        blackboard.detectedEnemies.Add(enemy);
+                        blackboard.detectedEnemies.Add(enemy);                        
                         blackboard.isWarning = true;
                         blackboard.warnedEnemyPosition = enemy.position;
                     }
@@ -557,15 +600,6 @@ public class AllyUnitController : MonoBehaviour
         transform.localScale = scale;
     }
 
-    public void OnCombatSoundHeard(Vector2 soundPosition)
-    {
-        // React to combat sound if within hearing range
-        if (Vector2.Distance(transform.position, soundPosition) <= blackboard.hearingRange)
-        {
-            blackboard.HandleCombatSound(soundPosition);
-        }
-    }
-
     public void ShootArrow()
     {
         // Only instantiate arrow, do not check cooldown here
@@ -580,22 +614,6 @@ public class AllyUnitController : MonoBehaviour
             }
         }
     }
-
-    public void ShootArrow2()
-    {
-        // Shoot arrow in facing direction (no target)
-        if (arrowPrefab != null && arrowSpawnPoint != null)
-        {
-            Vector2 dir = facingRight ? Vector2.right : Vector2.left;
-            GameObject arrow = Instantiate(arrowPrefab, arrowSpawnPoint.position, Quaternion.identity);
-            ArrowController arrowCtrl = arrow.GetComponent<ArrowController>();
-            if (arrowCtrl != null)
-            {
-                arrowCtrl.Init(dir, null);
-            }
-        }
-    }
-
     public void TakeDamage(float damage, Vector2 attackPos)
     {
         // Apply damage to this ally unit

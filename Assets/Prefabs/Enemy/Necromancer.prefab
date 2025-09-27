@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1862690522530014451}
   - component: {fileID: 4908513612650049920}
   - component: {fileID: 22819137954705885}
+  - component: {fileID: 1935932175514981621}
   m_Layer: 9
   m_Name: Necromancer
   m_TagString: Enemy
@@ -188,9 +189,32 @@ MonoBehaviour:
     targetNPC: {fileID: 0}
     targetStructure: {fileID: 0}
     nearbyAllies: []
+    detectedEnemies: []
     hp: 0
     hpMax: 0
     hpLowThreshold: 0
+    attackRange: 0
+    detectionRange: 0
+    moveSpeed: 0
+    lastAttackTime: 0
+    attackCooldown: 0
     waveActive: 0
     commandIssued: 0
     isEnraged: 0
+    isRetreating: 0
+    isEngaging: 0
+    isAttacking: 0
+    isScouting: 0
+    spawnPoint: {fileID: 0}
+--- !u!114 &1935932175514981621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6210713825474253663}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da3adeaa2c04d874eb9f7ec86b84559b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

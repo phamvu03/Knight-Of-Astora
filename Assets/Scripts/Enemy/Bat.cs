@@ -4,9 +4,14 @@ using UnityEngine;
 using Pathfinding;
 using UnityEngine.UIElements;
 using Unity.VisualScripting;
+using BehaviorTree;
 
+[RequireComponent(typeof(BatController))]
 public class Bat : Enemy
 {
+    [Header("Bat Components")]
+    public BatController batController;
+
     [Header("A Star Algorithms")]
     [SerializeField] private float pathUpdateInterval = 0.5f; // Route update frequency
     [SerializeField] private float nextWaypointDistance = 3f; // Distance to move to next waypoint
@@ -30,9 +35,37 @@ public class Bat : Enemy
     private Vector3 startPosition;
     private float lastPathUpdateTime = 0f;
 
+    protected override void Awake()
+    {
+        base.Awake();
+
+        // Initialize bat controller if not assigned
+        if (batController == null)
+        {
+            batController = GetComponent<BatController>();
+            if (batController == null)
+            {
+                batController = gameObject.AddComponent<BatController>();
+            }
+        }
+    }
+
     protected override void Start()
     {
         base.Start();
+
+        // Set bat specific stats
+        health = 50f;
+        speed = 3f;
+        damage = 1f;
+
+        // Initialize bat controller blackboard with current health
+        if (batController != null && batController.blackboard != null)
+        {
+            batController.blackboard.currentHP = health;
+            batController.blackboard.maxHP = health;
+            batController.blackboard.moveSpeed = speed;
+        }
 
         seeker = GetComponent<Seeker>();
         startPosition = transform.position;
@@ -41,222 +74,51 @@ public class Bat : Enemy
 
     protected override void Update()
     {
-        //trong base.update da co san UpdateEnemyState
-        base.Update();
-    }
-    protected override void UpdateEnemyState()
-    {
-        switch (GetCurrentEnemyState)
+        // Sync health between Enemy base class and Bat blackboard
+        if (batController != null && batController.blackboard != null)
         {
-            case EnemyStates.Bat_Idle:
-                Idle();
-                break;
-            case EnemyStates.Bat_Chase:
-                Chase();
-                break;
-            case EnemyStates.Bat_ReturnToStart:
-                ReturnToStart();
-                break;
-            case EnemyStates.Bat_Stunned:
-                Stunned();
-                break;
-            case EnemyStates.Bat_Death:
-                rb.gravityScale = 12f;
-                Destroy(gameObject, 1f);
-                break;
-        }
-    }
-    #region Process create path and make the bat follow the path
-    void CreateChasePath()
-    {
-        if (seeker.IsDone())
-        {
-            Vector3 targetPosition = PlayerController.Instance.transform.position + new Vector3(0, 1f, 0);
-            seeker.StartPath(transform.position, targetPosition, OnPathComplete);
-            lastPathUpdateTime = Time.time;
-        }
-    }
-    void CreateReturnPath()
-    {
-        if (seeker.IsDone())
-        {
-            seeker.StartPath(transform.position, startPosition, OnPathComplete);
-            lastPathUpdateTime = Time.time;
-        }
-    }
-    void OnPathComplete(Path p)
-    {
-        if (!p.error)
-        {
-            currentPath = p;
-            currentWaypoint = 0;
-        }
-    }
-    void FollowPath(float speedMultiplier = 1f)
-    {
-        if (currentPath == null || currentWaypoint >= currentPath.vectorPath.Count)
-        {
-            //reachedEndOfPath = true;
-            return;
-        }
-        //reachedEndOfPath = false;
+            batController.blackboard.currentHP = health;
 
-        float currentSpeed = speed * speedMultiplier;
-
-        //testing
-        Vector2 originDir = (Vector2)currentPath.vectorPath[currentWaypoint] - (Vector2)transform.position;
-
-        Vector2 direction = ((Vector2)currentPath.vectorPath[currentWaypoint] - (Vector2)transform.position).normalized;
-        Vector2 newPosition = (Vector2)transform.position + direction * currentSpeed * Time.deltaTime;
-        rb.MovePosition(newPosition);
-
-        float distanceToWaypoint = Vector2.Distance(transform.position, currentPath.vectorPath[currentWaypoint]);
-        if (distanceToWaypoint < nextWaypointDistance)
-        {
-            currentWaypoint++;
-        }
-
-        FlipBat(direction.x);
-    }
-    #endregion
-    void Idle()
-    {
-        float distanceToPlayer = Vector2.Distance(transform.position, player.transform.position);
-        isReturningToStart = false;
-        if (distanceToPlayer < detectedPlayerRange)
-        {
-            ChangeState(EnemyStates.Bat_Chase);
-            CreateChasePath();
-        }
-    }
-    void Chase()
-    {
-        if (currentPath == null)
-            return;
-        float distanceFromStart = Vector2.Distance(transform.position, startPosition);
-        float distanceToPlayer = Vector2.Distance(transform.position, player.transform.position);
-        if ((distanceFromStart > maxDistanceFromStart || distanceToPlayer > maxChasingDistance)  && !isReturningToStart)
-        {
-            currentPath = null;
-            ChangeState(EnemyStates.Bat_ReturnToStart);
-            return;
-        }
-
-        float chaseMultiSpeed = 2f;
-
-        if (Time.time > lastPathUpdateTime + pathUpdateInterval)
-        {
-            if (!isReturningToStart)
+            // Sync death state
+            if (health <= 0 && !batController.blackboard.isDead)
             {
-                CreateChasePath();
-            }
-        }
-        FollowPath(chaseMultiSpeed);
-    }
-    void ReturnToStart()
-    {
-        isReturningToStart = true;
-        float returnMultiSpeed = 2.5f;
-        float distanceFromStart = Vector2.Distance(transform.position, startPosition);
-        float distanceToPlayer = Vector2.Distance(transform.position, player.transform.position);
-
-        if (distanceFromStart < maxDistanceFromStart)
-        {
-            if (distanceToPlayer < detectedPlayerRange)
-            {
-                isReturningToStart = false;
-                currentPath = null;
-                ChangeState(EnemyStates.Bat_Chase);
-                CreateChasePath();
-                return;
+                batController.blackboard.isDead = true;
             }
         }
 
-        if (Time.time > lastPathUpdateTime + pathUpdateInterval)
-        {
-            CreateReturnPath();
-        }
-        if (distanceFromStart <= 1f)
-        {
-            currentPath = null;
-            transform.position = startPosition;
-            ChangeState(EnemyStates.Bat_Idle);
-            return;
-        }
+        // Note: BatController handles all behavior through its own Update method
+        // No need to call base.Update() as we're using Behavior Tree system now
+    }
 
-        FollowPath(returnMultiSpeed);
-    }
-    void Stunned()
-    {
-        float distanceFromStart = Vector2.Distance(transform.position, startPosition);
-        float distanceToPlayer = Vector2.Distance(transform.position, player.transform.position);
-        timer += Time.deltaTime;
-        if (timer > stunDuration)
-        {
-            if (distanceFromStart > maxDistanceFromStart || distanceToPlayer > maxChasingDistance)
-            {
-                ChangeState(EnemyStates.Bat_ReturnToStart);
-            }
-            else
-            {
-                ChangeState(EnemyStates.Bat_Idle);
-            }
-            rb.velocity = Vector2.zero;
-            timer = 0;
-        }
-    }
     public override void EnemyHit(float damage, Vector2 hitDirection, float hitForce)
     {
+        // Apply damage using base Enemy logic
         base.EnemyHit(damage, hitDirection, hitForce);
-        if (health <= 0)
+
+        // Forward damage to bat controller for behavior tree logic
+        if (batController != null)
         {
-            ChangeState(EnemyStates.Bat_Death);
-        }
-        else
-        {
-            ChangeState(EnemyStates.Bat_Stunned);
+            batController.TakeDamage(damage, hitDirection, hitForce);
         }
     }
 
     protected override void ChangeCurrentAnimation()
     {
-        anim.SetBool("Idle", GetCurrentEnemyState == EnemyStates.Bat_Idle);
-        anim.SetBool("Chase", GetCurrentEnemyState == EnemyStates.Bat_Chase);
-        anim.SetBool("Chase", GetCurrentEnemyState == EnemyStates.Bat_ReturnToStart);
-        if (GetCurrentEnemyState == EnemyStates.Bat_Stunned)
-        {
-            anim.SetTrigger("Stunned");
-        }
-        if (GetCurrentEnemyState == EnemyStates.Bat_Death)
-        {
-            anim.SetTrigger("Death");
-        }
+        // Animation is handled by BatController now
+        // This method is kept for compatibility but does nothing
     }
 
-    //Adjust FlipBat to recieve new direction
-    void FlipBat(float directionX = 0)
-    {
-        sr.flipX = directionX < 0;
-    }
-
+    // Keep gizmos for debugging - delegate to controller
     private void OnDrawGizmosSelected()
     {
-        //draw chase range in Scene view
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(startPosition, maxDistanceFromStart);
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, maxChasingDistance);
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, detectedPlayerRange);
-
-        // draw path
-        if (currentPath != null)
+        if (batController != null)
         {
-            Gizmos.color = Color.blue;
-            for (int i = currentWaypoint; i < currentPath.vectorPath.Count - 1; i++)
-            {
-                Gizmos.DrawLine(currentPath.vectorPath[i], currentPath.vectorPath[i + 1]);
-            }
+            // BatController handles gizmo drawing
+            return;
         }
+
+        // Fallback gizmo if controller not available
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, 8f); // Default detection range
     }
 }

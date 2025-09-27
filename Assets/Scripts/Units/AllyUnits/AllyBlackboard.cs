@@ -38,7 +38,6 @@ public class AllyBlackboard : MonoBehaviour
     public float lastIdleAnimationTime;
     public bool isPatrolling;
     public List<Transform> detectedEnemies = new List<Transform>();
-    public bool hasHeardCombatSound;
 
     [Header("Warn State")]
     public bool isWarning;
@@ -47,8 +46,6 @@ public class AllyBlackboard : MonoBehaviour
 
     [Header("Engage State")]
     public AllyCombatType combatType = AllyCombatType.Ranged; // Default to Ranged for archer
-    public float morale = 1.0f; // 1.0 = high, 0 = panic
-    public float moraleThreshold = 0.3f;
     public bool isEngaging;
     public Transform currentTarget;
     public float engageRange = 6f; // For ranged, melee, etc.
@@ -77,7 +74,6 @@ public class AllyBlackboard : MonoBehaviour
     public void ResetAlertState()
     {
         isInvestigatingSoundSource = false;
-        hasHeardCombatSound = false;
         lastSoundPosition = Vector2.zero;
     }
 
@@ -85,7 +81,6 @@ public class AllyBlackboard : MonoBehaviour
     {
         lastSoundPosition = soundPosition;
         lastSoundHeardTime = Time.time;
-        hasHeardCombatSound = true;
         isInvestigatingSoundSource = true;
     }
 

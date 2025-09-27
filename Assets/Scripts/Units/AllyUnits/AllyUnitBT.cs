@@ -37,8 +37,7 @@ public class AllyUnitBT : MonoBehaviour
             {
                 new ConditionNode(() =>
                     (blackboard.surrenderType == SurrenderType.None &&
-                        ((blackboard.maxHP > 0 && (blackboard.currentHP / blackboard.maxHP) < blackboard.hpLowThreshold)
-                        || blackboard.morale < blackboard.moraleThreshold))
+                        (blackboard.maxHP > 0 && (blackboard.currentHP / blackboard.maxHP) < blackboard.hpLowThreshold))
                     || blackboard.isSurrendering || blackboard.isLastStand),
                 new ActionNode(() =>
                 {
@@ -49,31 +48,27 @@ public class AllyUnitBT : MonoBehaviour
             // Pursue State
             new SequenceNode(new BTNode[]
             {
-                new ConditionNode(() =>
-                    (blackboard.detectedEnemies.Count > 0 && blackboard.currentTarget != null &&
-                    Vector2.Distance(controller.transform.position, blackboard.currentTarget.position) > blackboard.engageRange &&
-                    Vector2.Distance(controller.transform.position, blackboard.currentTarget.position) <= blackboard.chaseRadius)
-                    || blackboard.isPursuing),
+                new ConditionNode(() => blackboard.isPursuing),
                 new ActionNode(() =>
                 {
                     return controller.PursueAction() ? BehaviorState.Success : BehaviorState.Running;
                 })
             }),
 
-            // Engage State
+            // Engage State - Fixed condition: only engage when warned AND have target
             new SequenceNode(new BTNode[]
             {
-                new ConditionNode(() => blackboard.detectedEnemies.Count > 0 && blackboard.isWarning && blackboard.morale >= blackboard.moraleThreshold),
+                new ConditionNode(() => blackboard.detectedEnemies.Count > 0 && blackboard.isWarning && blackboard.currentTarget != null),
                 new ActionNode(() =>
                 {
                     return controller.EngageAction() ? BehaviorState.Success : BehaviorState.Running;
                 })
             }),
 
-            // Warn State
+            // Warn State - Fixed condition: warn when detect enemies but not yet engaging
             new SequenceNode(new BTNode[]
             {
-                new ConditionNode(() => (blackboard.detectedEnemies.Count > 0 || blackboard.isWarning)),
+                new ConditionNode(() => blackboard.detectedEnemies.Count > 0 && (!blackboard.isWarning || blackboard.currentTarget == null)),
                 new ActionNode(() =>
                 {
                     return controller.WarnAction() ? BehaviorState.Success : BehaviorState.Running;
@@ -83,7 +78,7 @@ public class AllyUnitBT : MonoBehaviour
             // Alert State
             new SequenceNode(new BTNode[] 
             {
-                new ConditionNode(() => blackboard.detectedEnemies.Count == 0 && !blackboard.hasHeardCombatSound && !blackboard.isWarning),
+                new ConditionNode(() => blackboard.detectedEnemies.Count == 0 && !blackboard.isWarning && !blackboard.isPursuing),
                 new SelectorNode(new BTNode[] 
                 {
                     // Patrol behavior
@@ -109,16 +104,6 @@ public class AllyUnitBT : MonoBehaviour
                     })
                 })
             }),
-
-            // Investigate Sound
-            new SequenceNode(new BTNode[]
-            {
-                new ConditionNode(() => blackboard.hasHeardCombatSound),
-                new ActionNode(() =>
-                {
-                    return controller.InvestigateSound() ? BehaviorState.Success : BehaviorState.Running;
-                })
-            })
         });
     }
 
