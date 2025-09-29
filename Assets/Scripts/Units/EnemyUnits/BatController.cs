@@ -1,6 +1,7 @@
 using UnityEngine;
 using BehaviorTree;
 using Pathfinding;
+using Unity.Entities;
 
 [RequireComponent(typeof(Seeker))]
 [RequireComponent(typeof(Rigidbody2D))]
@@ -63,9 +64,15 @@ public class BatController : MonoBehaviour
     {
         // Update path update timer
         blackboard.lastPathUpdateTime += Time.deltaTime;
+        
+        // Update death state based on inherited hp
+        if (blackboard.hp <= 0 && !blackboard.isDead)
+        {
+            blackboard.isDead = true;
+        }
     }
 
-    // Detection system using OverlapCircle instead of singleton
+    // Detection system using OverlapCircle
     private System.Collections.IEnumerator DetectionUpdate()
     {
         while (true)
@@ -77,37 +84,18 @@ public class BatController : MonoBehaviour
 
     private void UpdateDetection()
     {
-        // Clear previous detections
-        blackboard.detectedPlayers.Clear();
-        blackboard.targetPlayer = null;
-        
+        Debug.Log("Updating detection...");
         // Find players using OverlapCircle
         Collider2D[] players = Physics2D.OverlapCircleAll(transform.position, blackboard.detectionRange, blackboard.playerLayer);
         
-        Transform closestPlayer = null;
-        float closestDistance = float.MaxValue;
-        
-        foreach (var playerCollider in players)
+        Transform[] playerTransforms = new Transform[players.Length];
+        for (int i = 0; i < players.Length; i++)
         {
-            if (playerCollider.CompareTag("Player"))
-            {
-                blackboard.detectedPlayers.Add(playerCollider.transform);
-                
-                // Find closest player
-                float distance = Vector2.Distance(transform.position, playerCollider.transform.position);
-                if (distance < closestDistance)
-                {
-                    closestDistance = distance;
-                    closestPlayer = playerCollider.transform;
-                }
-            }
+            playerTransforms[i] = players[i].transform;
         }
         
-        // Set target to closest player
-        if (closestPlayer != null)
-        {
-            blackboard.targetPlayer = closestPlayer;
-        }
+        // Use new method from BatBlackboard
+        blackboard.UpdateDetectedPlayers(playerTransforms);
     }
 
     // Action Methods for Behavior Tree
@@ -117,17 +105,19 @@ public class BatController : MonoBehaviour
         _rb.velocity = Vector2.zero;
         blackboard.isChasing = false;
         blackboard.isReturning = false;
+        blackboard.isEngaging = false; // Use inherited field
         
         return BehaviorState.Success;
     }
 
     public BehaviorState ChaseAction()
     {
-        if (blackboard.targetPlayer == null || blackboard.currentPath == null)
+        if (blackboard.targetPlayer == null)
             return BehaviorState.Failure;
             
         blackboard.isChasing = true;
         blackboard.isReturning = false;
+        blackboard.isEngaging = true; // Use inherited field
         
         // Update path if needed
         if (Time.time > blackboard.lastPathUpdateTime + blackboard.pathUpdateInterval)
@@ -145,6 +135,8 @@ public class BatController : MonoBehaviour
     {
         blackboard.isReturning = true;
         blackboard.isChasing = false;
+        blackboard.isEngaging = false; // Use inherited field
+        blackboard.isRetreating = true; // Use inherited field
         
         // Update path if needed
         if (Time.time > blackboard.lastPathUpdateTime + blackboard.pathUpdateInterval)
@@ -152,7 +144,7 @@ public class BatController : MonoBehaviour
             CreateReturnPath();
         }
         
-        // Follow path
+        // Follow path with return speed
         FollowPath(blackboard.returnSpeedMultiplier);
         
         // Check if reached start position
@@ -161,6 +153,7 @@ public class BatController : MonoBehaviour
         {
             transform.position = blackboard.startPosition;
             blackboard.currentPath = null;
+            blackboard.isRetreating = false;
             return BehaviorState.Success;
         }
         
@@ -171,6 +164,13 @@ public class BatController : MonoBehaviour
     {
         _rb.gravityScale = 12f;
         blackboard.isDead = true;
+        
+        // Use inherited spawn point for respawn logic if needed
+        if (blackboard.spawnPoint != null)
+        {
+            // Could trigger respawn logic here
+        }
+        
         Destroy(gameObject, 1f);
         return BehaviorState.Success;
     }
@@ -245,7 +245,10 @@ public class BatController : MonoBehaviour
     {
         if (_animator == null) return;
         
-        _animator.SetBool("Chase", blackboard.isChasing || blackboard.isReturning);
+        // Use more descriptive animation states
+        _animator.SetBool("IsMoving", blackboard.isChasing || blackboard.isReturning);
+        _animator.SetBool("IsChasing", blackboard.isChasing);
+        _animator.SetBool("IsReturning", blackboard.isReturning);
         
         if (blackboard.isDead)
         {
@@ -255,11 +258,20 @@ public class BatController : MonoBehaviour
 
     public void TakeDamage(float damage, Vector2 hitDirection, float hitForce)
     {
-        blackboard.currentHP -= damage;
+        // Use inherited hp field
+        blackboard.hp -= (int)damage;
+        blackboard.lastAttackTime = Time.time; // Track when last hit
         
-        if (blackboard.currentHP <= 0)
+        if (blackboard.hp <= 0)
         {
             blackboard.isDead = true;
+            blackboard.hp = 0; // Clamp to 0
+        }
+        
+        // Optional: Add knockback effect using hitDirection and hitForce
+        if (_rb != null && hitForce > 0)
+        {
+            _rb.AddForce(hitDirection.normalized * hitForce, ForceMode2D.Impulse);
         }
     }
 
@@ -272,12 +284,16 @@ public class BatController : MonoBehaviour
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, blackboard.detectionRange);
         
+        // Attack range
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, blackboard.attackRange);
+        
         // Chase range from start
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(blackboard.startPosition, blackboard.maxDistanceFromStart);
         
         // Max chasing distance
-        Gizmos.color = Color.red;
+        Gizmos.color = new Color(1f, 0.5f, 0f); // Orange color
         Gizmos.DrawWireSphere(transform.position, blackboard.maxChasingDistance);
 
         // Draw current path
@@ -288,6 +304,13 @@ public class BatController : MonoBehaviour
             {
                 Gizmos.DrawLine(blackboard.currentPath.vectorPath[i], blackboard.currentPath.vectorPath[i + 1]);
             }
+        }
+        
+        // Draw line to target
+        if (blackboard.targetPlayer != null)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(transform.position, blackboard.targetPlayer.position);
         }
     }
 }

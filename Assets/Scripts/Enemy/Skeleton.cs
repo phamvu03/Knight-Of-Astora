@@ -79,38 +79,79 @@ public class Skeleton : Enemy
     }
     void Idle()
     {
+        // Idle is now a fallback/rest state, not a decision hub
         anim.SetBool("Walk", false);
         rb.velocity = Vector2.zero;
-
+        
+        // Simple detection with immediate action (for cases when called from other states)
         Transform nearestTarget = FindNearestEnemyTarget();
         if (nearestTarget != null)
         {
+            currentTarget = nearestTarget;
             float dist = Vector2.Distance(transform.position, nearestTarget.position);
+            
             if (Time.time >= (lastAttackTime + attackCooldown) && dist <= attackRange)
             {
-                currentTarget = nearestTarget;
-                currentEnemyState = EnemyStates.ATTACK;
+                ChangeState(EnemyStates.ATTACK);
             }
             else if (dist > attackRange)
             {
-                currentTarget = nearestTarget;
-                currentEnemyState = EnemyStates.CHASE;
+                ChangeState(EnemyStates.CHASE);
+            }
+        }
+        else
+        {
+            // No target found, return to patrol after short idle time
+            float distanceToStart = Vector2.Distance(transform.position, originalPos);
+            if (distanceToStart > 1f)
+            {
+                ChangeState(EnemyStates.RETURN_TO_START);
+            }
+            else
+            {
+                ChangeState(EnemyStates.PATROL);
             }
         }
     }
     void Patrol()
     {
-        FindNearestEnemyTarget();
-
+        // Detection and state transition logic (execute first)
+        Transform nearestTarget = FindNearestEnemyTarget();
+        if (nearestTarget != null)
+        {
+            currentTarget = nearestTarget;
+            float dist = Vector2.Distance(transform.position, nearestTarget.position);
+            
+            // Direct transition based on distance
+            if (Time.time >= (lastAttackTime + attackCooldown) && dist <= attackRange)
+            {
+                // Can attack immediately
+                anim.SetBool("Walk", false);
+                ChangeState(EnemyStates.ATTACK);
+                return;
+            }
+            else if (dist > attackRange && dist <= detectionRange)
+            {
+                // Need to chase first
+                ChangeState(EnemyStates.CHASE);
+                return;
+            }
+        }
+        
+        // Patrol movement logic (execute only if no target found)
         Vector3 ledgeCheckStart = transform.localScale.x > 0 ? new Vector3(-ledgeCheckX, 1.5f) : new Vector3(ledgeCheckX, 1.5f);
         Vector2 wallCheckDir = transform.localScale.x > 0 ? -transform.right : transform.right;
+        
+        // Edge and wall detection
         if (!Physics2D.Raycast(transform.position + ledgeCheckStart, Vector2.down, ledgeCheckY, whatIsGround)
             || Physics2D.Raycast(transform.position + new Vector3(0, 0.5f, 0), wallCheckDir, ledgeCheckX, whatIsGround))
         {
             Flip();
         }
+        
+        // Continue patrol animation and movement
         anim.SetBool("Walk", true);
-
+        
         float currentPatrolPosition = transform.position.x;
         float leftBound = originalPos.x - patrolRange;
         float rightBound = originalPos.x + patrolRange;
@@ -131,7 +172,6 @@ public class Skeleton : Enemy
                 Flip();
             }
         }
-        
     }
     
     private Transform FindNearestEnemyTarget()

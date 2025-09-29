@@ -1,7 +1,7 @@
 using UnityEngine;
 using BehaviorTree;
 
-public class BatBT : MonoBehaviour
+public class BatBT
 {
     private BTNode _root;
     private BatBlackboard _bb;
@@ -56,14 +56,18 @@ public class BatBT : MonoBehaviour
 
     public void Tick()
     {
-        _root?.Evaluate();
+        if (_root != null)
+        {
+            _root.Evaluate();
+        }
     }
 
     // --- BT Condition Methods ---
 
     private bool DeathCondition()
     {
-        return _bb.isDead || _bb.currentHP <= 0;
+        // Use inherited hp field instead of currentHP
+        return _bb.isDead || _bb.hp <= 0;
     }
 
     private bool ReturnCondition()
@@ -75,7 +79,8 @@ public class BatBT : MonoBehaviour
         
         // Return if too far from start OR too far from target while chasing
         return (distanceFromStart > _bb.maxDistanceFromStart) || 
-               (distanceToTarget > _bb.maxChasingDistance && _bb.isChasing);
+               (distanceToTarget > _bb.maxChasingDistance && _bb.isChasing) ||
+               (_bb.IsHealthBelowPercent(0.2f) && !_bb.isAtSpawn); // Return when low health
     }
 
     private bool ChaseCondition()
@@ -90,7 +95,8 @@ public class BatBT : MonoBehaviour
             
             return distanceToTarget <= _bb.detectionRange && 
                    distanceFromStart <= _bb.maxDistanceFromStart &&
-                   distanceToTarget <= _bb.maxChasingDistance;
+                   distanceToTarget <= _bb.maxChasingDistance &&
+                   !_bb.IsHealthBelowPercent(0.1f); // Don't chase when critically low health
         }
         
         return false;
@@ -99,6 +105,6 @@ public class BatBT : MonoBehaviour
     private bool IdleCondition()
     {
         // Idle is the default state when no other conditions are met
-        return !_bb.isDead && !_bb.isChasing && !_bb.isReturning;
+        return !_bb.isDead && !_bb.isChasing && !_bb.isReturning && !_bb.isEngaging;
     }
 }

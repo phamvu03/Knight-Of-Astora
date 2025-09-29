@@ -29,7 +29,6 @@ public class Bat : Enemy
     private Path currentPath;
     private Seeker seeker;
     private int currentWaypoint = 0;
-    //private bool reachedEndOfPath = false;
     private bool isReturningToStart = false;
 
     private Vector3 startPosition;
@@ -59,12 +58,17 @@ public class Bat : Enemy
         speed = 3f;
         damage = 1f;
 
-        // Initialize bat controller blackboard with current health
+        // Sync stats with blackboard using inherited EnemyBlackboard fields
         if (batController != null && batController.blackboard != null)
         {
-            batController.blackboard.currentHP = health;
-            batController.blackboard.maxHP = health;
+            batController.blackboard.hp = (int)health;
+            batController.blackboard.hpMax = (int)health;
             batController.blackboard.moveSpeed = speed;
+            batController.blackboard.detectionRange = detectedPlayerRange;
+            batController.blackboard.maxChasingDistance = maxChasingDistance;
+            batController.blackboard.maxDistanceFromStart = maxDistanceFromStart;
+            batController.blackboard.pathUpdateInterval = pathUpdateInterval;
+            batController.blackboard.nextWaypointDistance = nextWaypointDistance;
         }
 
         seeker = GetComponent<Seeker>();
@@ -74,10 +78,11 @@ public class Bat : Enemy
 
     protected override void Update()
     {
-        // Sync health between Enemy base class and Bat blackboard
+        // Sync health between Enemy base class and BatBlackboard (now using inherited hp)
         if (batController != null && batController.blackboard != null)
         {
-            batController.blackboard.currentHP = health;
+            // Sync from blackboard to base Enemy class
+            health = batController.blackboard.hp;
 
             // Sync death state
             if (health <= 0 && !batController.blackboard.isDead)

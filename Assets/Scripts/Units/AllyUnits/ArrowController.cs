@@ -9,6 +9,10 @@ public class ArrowController : MonoBehaviour
 
     public void Init(Vector2 dir, Transform tgt)
     {
+        if (dir.x < 0)
+        {
+            Flip();
+        }   
         direction = dir;
         target = tgt;
         Destroy(gameObject, 3f); // Destroy after 3 seconds if no hit
@@ -17,6 +21,13 @@ public class ArrowController : MonoBehaviour
     void Update()
     {
         transform.position += (Vector3)direction * speed * Time.deltaTime;
+    }
+
+    private void Flip()
+    {
+        Vector3 scale = transform.localScale;
+        scale.x = -Mathf.Abs(scale.x);
+        transform.localScale = scale;
     }
 
     void OnTriggerEnter2D(Collider2D other)

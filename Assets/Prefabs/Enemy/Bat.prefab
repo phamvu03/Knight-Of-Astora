@@ -13,8 +13,9 @@ GameObject:
   - component: {fileID: 686895827430719244}
   - component: {fileID: 8573877378509075402}
   - component: {fileID: 7641549212279445017}
-  - component: {fileID: 490560800252570732}
   - component: {fileID: 1101765611395451976}
+  - component: {fileID: 490560800252570732}
+  - component: {fileID: 5361194467051066380}
   m_Layer: 6
   m_Name: Bat
   m_TagString: Enemy
@@ -172,33 +173,6 @@ CircleCollider2D:
   m_Offset: {x: 0, y: -0.2}
   serializedVersion: 2
   m_Radius: 0.5
---- !u!114 &490560800252570732
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7289879834899874478}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ca393e639bbe647489051d5633c92e9e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  health: 5
-  recoilLength: 0.3
-  recoilFactor: 0.5
-  isRecoiling: 0
-  isFacingRight: 0
-  recoilTimer: 0
-  dmgSoundClip: {fileID: 8300000, guid: 8b23b175a78d6b5458322e3a6c9905d0, type: 3}
-  speed: 15
-  damage: 1
-  pathUpdateInterval: 0.5
-  nextWaypointDistance: 1
-  detectedPlayerRange: 8
-  maxChasingDistance: 15
-  maxDistanceFromStart: 20
-  stunDuration: 1
 --- !u!114 &1101765611395451976
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -227,3 +201,70 @@ MonoBehaviour:
   tagPenalties: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   graphMask:
     value: -1
+--- !u!114 &490560800252570732
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7289879834899874478}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca393e639bbe647489051d5633c92e9e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  health: 5
+  isFacingRight: 0
+  dmgSoundClip: {fileID: 8300000, guid: 8b23b175a78d6b5458322e3a6c9905d0, type: 3}
+  speed: 15
+  damage: 1
+  batController: {fileID: 0}
+  pathUpdateInterval: 0.5
+  nextWaypointDistance: 1
+  detectedPlayerRange: 8
+  maxChasingDistance: 15
+  maxDistanceFromStart: 20
+  stunDuration: 1
+--- !u!114 &5361194467051066380
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7289879834899874478}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0f16864d7c8d674c9b86c90fe9015db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  blackboard:
+    detectionRange: 8
+    playerLayer:
+      serializedVersion: 2
+      m_Bits: 4294967295
+    obstacleLayer:
+      serializedVersion: 2
+      m_Bits: 4294967295
+    moveSpeed: 3
+    chaseSpeedMultiplier: 2
+    returnSpeedMultiplier: 2.5
+    maxDistanceFromStart: 20
+    maxChasingDistance: 10
+    pathUpdateInterval: 0.5
+    nextWaypointDistance: 3
+    currentHP: 50
+    maxHP: 50
+    targetPlayer: {fileID: 0}
+    detectedPlayers: []
+    startPosition: {x: 0, y: 0, z: 0}
+    isChasing: 0
+    isReturning: 0
+    isDead: 0
+    currentWaypoint: 0
+    lastPathUpdateTime: 0
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
