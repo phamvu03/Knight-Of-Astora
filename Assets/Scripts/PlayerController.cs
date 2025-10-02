@@ -373,6 +373,7 @@ public class PlayerController : MonoBehaviour
             if (objectsToHit[i].GetComponent<Enemy>() != null)
             {
                 objectsToHit[i].GetComponent<Enemy>().EnemyHit(damage, recoilDir, recoilStrength);
+                //objectsToHit[i].GetComponent<BatController>().TakeDamage(damage, recoilDir, recoilStrength);
                 if (objectsToHit[i].CompareTag("Enemy"))
                 {
                     Mana += manaGain;

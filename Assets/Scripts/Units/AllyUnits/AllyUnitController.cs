@@ -147,7 +147,6 @@ public class AllyUnitController : MonoBehaviour
 
     public bool WarnAction()
     {
-        Debug.Log("Warn-ing");
         // Move to warn position if not already there, move slow as half of normal speed, stop at warn position 2 distance long
         if (blackboard.detectedEnemies.Count > 0)
         {
@@ -213,7 +212,6 @@ public class AllyUnitController : MonoBehaviour
 
     public bool EngageAction()
     {
-        Debug.Log("Engage-ing");
         // Clean up destroyed or missing enemies
         blackboard.detectedEnemies.RemoveAll(enemy =>
             enemy == null || Vector2.Distance(transform.position, enemy.position) > viewDistance);
@@ -321,8 +319,9 @@ public class AllyUnitController : MonoBehaviour
                 
             case AllyCombatType.Ranged:
                 float safeDist = 6f;
-                if (distToTargetX < safeDist)
+                if (distToTargetX < safeDist && !animator.GetCurrentAnimatorStateInfo(0).IsName("Archer_attack"))
                 {
+                    Debug.Log("run to safe position");
                     float runDir = Mathf.Sign(transform.position.x - target.position.x);
                     rb.velocity = new Vector2(runDir * blackboard.walkSpeed, 0);
                     animator.SetBool("IsMoving", true);
@@ -365,8 +364,7 @@ public class AllyUnitController : MonoBehaviour
     }
 
     public bool PursueAction()
-    {
-        Debug.Log("Pursue-ing");
+    {        
         // Initialize pursuit if not already pursuing
         if (!blackboard.isPursuing && blackboard.currentTarget != null)
         {
@@ -423,7 +421,6 @@ public class AllyUnitController : MonoBehaviour
                 return true; // Back to patrol
             }
         }
-        Debug.Log("last known enemy pos" + blackboard.lastKnownEnemyPosition);
         // Move towards current target
         float dirX2 = Mathf.Sign(blackboard.currentTarget.position.x - transform.position.x);
         rb.velocity = new Vector2(dirX2 * blackboard.walkSpeed, 0);

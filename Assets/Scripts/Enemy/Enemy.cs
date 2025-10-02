@@ -7,9 +7,9 @@ public class Enemy : MonoBehaviour
 {
     [Header("Basic Stats:")]
     [SerializeField] protected float health;
-    [SerializeField] protected bool isFacingRight = false;
     //[SerializeField] protected float attackCooldown = 2f;
     [SerializeField] protected AudioClip dmgSoundClip;
+    protected bool isFacingRight = false;
 
     protected PlayerController player;
     public float speed;
@@ -35,13 +35,6 @@ public class Enemy : MonoBehaviour
         DEATH,
         RETURN_TO_START,
 
-        //Bat
-        Bat_Idle, 
-        Bat_Chase,
-        Bat_Stunned, 
-        Bat_Death,
-        Bat_ReturnToStart,
-
         //Dracula
         Dracula_Stage1,
         Dracula_Stage2
@@ -61,10 +54,7 @@ public class Enemy : MonoBehaviour
             }
         }
     }
-    protected virtual void Awake()
-    {
-        
-    }
+    protected virtual void Awake() {}
     protected virtual void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -91,7 +81,13 @@ public class Enemy : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Player"))
         {
-            Attack();
+            var player = other.gameObject.GetComponent<PlayerController>();
+            player.TakeDamage(damage, rb.transform.position);
+        }
+        if(other.gameObject.CompareTag("Ally"))
+        {
+            var ally = other.gameObject.GetComponent<AllyUnitController>();
+            ally.TakeDamage(damage, rb.transform.position);
         }
     }
     protected virtual void UpdateEnemyState() { }

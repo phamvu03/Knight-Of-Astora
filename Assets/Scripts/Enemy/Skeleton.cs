@@ -26,10 +26,6 @@ public class Skeleton : Enemy
     [SerializeField] private float attackCooldown = 2f;
     private float lastAttackTime;
 
-    [Header("Stun Settings")]
-    [SerializeField] private float stunDuration;
-    private float timer;
-
     private Transform currentTarget;
     private enum SkeletonExtraState { CounterAttack = 1000 }
 
