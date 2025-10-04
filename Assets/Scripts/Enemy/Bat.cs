@@ -34,7 +34,6 @@ public class Bat : Enemy
 
     // A* Pathfinding components
     private Vector3 originalPos;
-    private Vector3 currentPos;
     private float minHeight = 2f;
 
     
@@ -51,9 +50,20 @@ public class Bat : Enemy
         seeker = GetComponent<Seeker>();
         originalPos = transform.position;
         ChangeState(EnemyStates.IDLE);
+
+        // Automatically find the ground object by name
+        GameObject groundObject = GameObject.Find("BaseGround");
+        if (groundObject != null)
+        {
+            ground = groundObject.transform;
+        }
+        else
+        {
+            Debug.LogWarning("Ground object not found. Please ensure there is an object named 'ground' in the scene.");
+        }
     }
 
-    protected override void Update()
+    protected void FixedUpdate()
     {
         base.Update();
 
@@ -166,7 +176,7 @@ public class Bat : Enemy
             currentWaypoint = 0;
         }
     }
-    void OriginFollowPath(float speedMultiplier = 1f)
+    void FollowPath(float speedMultiplier = 1f)
     {
         if (currentPath == null || currentWaypoint >= currentPath.vectorPath.Count)
         {
@@ -175,7 +185,7 @@ public class Bat : Enemy
         float currentSpeed = speed * speedMultiplier;
         Vector2 direction = ((Vector2)currentPath.vectorPath[currentWaypoint] - (Vector2)transform.position).normalized;
 
-        Vector2 newPosition = (Vector2)transform.position + direction * currentSpeed * Time.deltaTime;
+        Vector2 newPosition = (Vector2)transform.position + direction * currentSpeed * Time.fixedDeltaTime;
         rb.MovePosition(newPosition);
 
         float distanceToWaypoint = Vector2.Distance(transform.position, currentPath.vectorPath[currentWaypoint]);
@@ -186,7 +196,7 @@ public class Bat : Enemy
 
         FlipBat(direction.x);
     }
-    void FollowPath(float speedMultiplier = 1f)
+    void AlterFollowPath(float speedMultiplier = 1f)
     {
         if (currentPath == null || currentWaypoint >= currentPath.vectorPath.Count)
         {
@@ -201,7 +211,7 @@ public class Bat : Enemy
         Vector2 direction = targetPosition - (Vector2)transform.position;
 
         // Use MoveTowards to ensure constant speed
-        rb.velocity = direction * currentSpeed;
+        rb.AddForce(direction * currentSpeed, ForceMode2D.Force);
 
         float distanceToWaypoint = Vector2.Distance(transform.position, targetPosition);
         if (distanceToWaypoint < nextWaypointDistance)
@@ -260,7 +270,7 @@ public class Bat : Enemy
     }
     void ReturnToStart()
     {
-        float returnMultiSpeed = 2.5f;
+        float returnMultiSpeed = 1f;
         float distanceToStart = Vector2.Distance(transform.position, originalPos);
         float distanceToTarget = Vector2.Distance(transform.position, currentTarget.position);
 
@@ -279,10 +289,11 @@ public class Bat : Enemy
         {
             CreateReturnPath();
         }
-        if (distanceToStart <= 0.1f)
+        if (distanceToStart <= 1f)
         {
             currentPath = null;
             transform.position = originalPos;
+            rb.velocity = Vector2.zero;
             ChangeState(EnemyStates.IDLE);
             return;
         }
@@ -325,11 +336,10 @@ public class Bat : Enemy
         if (distanceToTarget <= attackRange && Time.time > lastTimeAttack + attackCooldown)
         {
             // Perform a diagonal lunge attack
-            currentPos = transform.position;
             lastTimeAttack = Time.time;
 
             // Calculate the diagonal starting position (45 degrees above the target)
-            Vector2 targetPosition = currentTarget.position + new Vector3(0, 1.5f, 0); // Adjust target position
+            Vector2 targetPosition = currentTarget.position + new Vector3(0, 1.3f, 0); // Adjust target position
             Vector2 diagonalStartPosition = targetPosition + new Vector2(
                 Mathf.Sign(transform.position.x - targetPosition.x) * 1.3f, 2.5f);
 
@@ -337,7 +347,6 @@ public class Bat : Enemy
             StartCoroutine(MoveToPosition(diagonalStartPosition, () => StartCoroutine(DiagonalLungeAttack(targetPosition))));
         }
     }
-
     private IEnumerator MoveToPosition(Vector2 targetPosition, System.Action onComplete)
     {
         while (Vector2.Distance(transform.position, targetPosition) > 0.1f)
@@ -352,19 +361,19 @@ public class Bat : Enemy
 
     private IEnumerator DiagonalLungeAttack(Vector2 targetPosition)
     {
-        float lungeForce =8f; 
+        float lungeForce =10f; 
         float retreatForce = 10f; 
         float lungeDuration = 0.3f; 
         float retreatDuration = 0.3f; 
 
         // Lunge towards the target
-        Vector2 lungeDirection = (targetPosition - (Vector2)transform.position).normalized;
+        Vector2 lungeDirection = ((Vector2)currentTarget.position - (Vector2)transform.position).normalized;
         rb.AddForce(lungeDirection * lungeForce, ForceMode2D.Impulse);
         yield return new WaitForSeconds(lungeDuration);
         rb.velocity = Vector2.zero;
-
+        
         // Retreat back to the original 
-        Vector2 retreatDirection = -1 * lungeDirection;
+        Vector2 retreatDirection = (-1) * lungeDirection;
         rb.AddForce(retreatDirection * retreatForce, ForceMode2D.Impulse);
         yield return new WaitForSeconds(retreatDuration);
         rb.velocity = Vector2.zero;

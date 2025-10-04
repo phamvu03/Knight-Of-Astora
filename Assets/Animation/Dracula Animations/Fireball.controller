@@ -87,8 +87,8 @@ AnimatorController:
   m_Name: Fireball
   serializedVersion: 5
   m_AnimatorParameters:
-  - m_Name: isFireballHit
-    m_Type: 4
+  - m_Name: Fireball_hit
+    m_Type: 9
     m_DefaultFloat: 0
     m_DefaultInt: 0
     m_DefaultBool: 0
@@ -115,7 +115,7 @@ AnimatorStateTransition:
   m_Name: 
   m_Conditions:
   - m_ConditionMode: 1
-    m_ConditionEvent: isFireballHit
+    m_ConditionEvent: Fireball_hit
     m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: -7801061293462202358}
@@ -125,7 +125,7 @@ AnimatorStateTransition:
   serializedVersion: 3
   m_TransitionDuration: 0
   m_TransitionOffset: 0
-  m_ExitTime: 0.63414633
+  m_ExitTime: 1.0064538
   m_HasExitTime: 0
   m_HasFixedDuration: 1
   m_InterruptionSource: 0

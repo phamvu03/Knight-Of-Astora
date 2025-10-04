@@ -223,8 +223,8 @@ public class BossScript : Enemy
             GameObject projectile = Instantiate(FireBall, abilitiesSpawn.position, Quaternion.Euler( 0, 0, currentAngle));
             AbilitiesScript abilitiesScript = projectile.GetComponent<AbilitiesScript>();
             float currentToRadian = (45f + currentAngle) * Mathf.Deg2Rad;
-            abilitiesScript.xAxis = -(Mathf.Sqrt(2) * Mathf.Cos(currentToRadian));
-            abilitiesScript.yAxis = -(Mathf.Sqrt(2) * Mathf.Sin(currentToRadian));
+            //abilitiesScript.xAxis = -(Mathf.Sqrt(2) * Mathf.Cos(currentToRadian));
+            //abilitiesScript.yAxis = -(Mathf.Sqrt(2) * Mathf.Sin(currentToRadian));
             if (facingLeft)
             {
                 projectile.transform.eulerAngles = new Vector3(projectile.transform.eulerAngles.x,

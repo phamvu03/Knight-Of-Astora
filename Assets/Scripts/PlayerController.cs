@@ -2,6 +2,7 @@ using JetBrains.Annotations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using static UnityEngine.UI.Image;
@@ -373,13 +374,25 @@ public class PlayerController : MonoBehaviour
             if (objectsToHit[i].GetComponent<Enemy>() != null)
             {
                 objectsToHit[i].GetComponent<Enemy>().EnemyHit(damage, recoilDir, recoilStrength);
-                //objectsToHit[i].GetComponent<BatController>().TakeDamage(damage, recoilDir, recoilStrength);
                 if (objectsToHit[i].CompareTag("Enemy"))
                 {
                     Mana += manaGain;
                     manaController.SetMana(Mana);
                 }
-            } 
+            }
+            if (objectsToHit[i].GetComponent<MiniBossController>() != null)
+            {
+                objectsToHit[i].GetComponent<MiniBossController>().TakeDamage(damage);
+                if (objectsToHit[i].CompareTag("Enemy"))
+                {
+                    Mana += manaGain;
+                    manaController.SetMana(Mana);
+                }
+            }
+            if (objectsToHit[i].GetComponent<SpawnBase>() != null)
+            {
+                objectsToHit[i].GetComponent<SpawnBase>().TakeDamage(damage);
+            }
         }
     }
     void Recoil()

@@ -91,7 +91,6 @@ public class GameManager : MonoBehaviour
         {
             RespawnAtDefault();
         }
-            
     }
     private void RespawnAtCheckpoint()
     {
@@ -113,4 +112,5 @@ public class GameManager : MonoBehaviour
         transitionAnim.SetTrigger("Start");
         StartCoroutine(PlayerController.Instance.WalkIntoNewScene(transitionPos, transitionDir, delay));
     }
+
 }

@@ -213,9 +213,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 5
-  isFacingRight: 0
   dmgSoundClip: {fileID: 8300000, guid: 8b23b175a78d6b5458322e3a6c9905d0, type: 3}
-  speed: 5
+  speed: 3
   damage: 1
   pathUpdateInterval: 0.5
   nextWaypointDistance: 1
@@ -233,3 +232,7 @@ MonoBehaviour:
     m_Bits: 0
   currentTarget: {fileID: 0}
   detectedEnemies: []
+  ground: {fileID: 0}
+  attackRange: 6
+  attackCooldown: 2
+  lastTimeAttack: 0

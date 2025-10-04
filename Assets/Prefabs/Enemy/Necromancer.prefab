@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6037646826767198194
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1019990177999778210}
+  m_Layer: 0
+  m_Name: DarkBoltSpawnPos
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1019990177999778210
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6037646826767198194}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3728463988959427008}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6210713825474253663
 GameObject:
   m_ObjectHideFlags: 0
@@ -13,9 +44,9 @@ GameObject:
   - component: {fileID: 5580329541788834361}
   - component: {fileID: 1862690522530014451}
   - component: {fileID: 4908513612650049920}
-  - component: {fileID: 22819137954705885}
+  - component: {fileID: 5423895114711933068}
   - component: {fileID: 1935932175514981621}
-  m_Layer: 9
+  m_Layer: 6
   m_Name: Necromancer
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -34,7 +65,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 6, y: 6, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1019990177999778210}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &8438050552339620379
@@ -169,10 +201,10 @@ CapsuleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0.35}
-  m_Size: {x: 0.3, y: 0.5}
+  m_Offset: {x: 0, y: 0.25}
+  m_Size: {x: 0.2, y: 0.5}
   m_Direction: 0
---- !u!114 &22819137954705885
+--- !u!114 &5423895114711933068
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -185,27 +217,78 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   blackboard:
-    targetPlayer: {fileID: 0}
-    targetNPC: {fileID: 0}
-    targetStructure: {fileID: 0}
-    nearbyAllies: []
+    currentTarget: {fileID: 0}
     detectedEnemies: []
     hp: 0
-    hpMax: 0
+    maxHp: 50
     hpLowThreshold: 0
-    attackRange: 0
-    detectionRange: 0
-    moveSpeed: 0
-    lastAttackTime: 0
-    attackCooldown: 0
-    waveActive: 0
-    commandIssued: 0
+    isAttacking: 0
+    attackRange: 8
+    attackDamage: 1
+    attackCooldown: 10
+    detectionRange: 8
+    playerLayer:
+      serializedVersion: 2
+      m_Bits: 1024
+    allyLayer:
+      serializedVersion: 2
+      m_Bits: 256
+    obstacleLayer:
+      serializedVersion: 2
+      m_Bits: 0
+    isScouting: 0
+    moveSpeed: 3
+    chaseSpeed: 3
+    retreatSpeed: 3
+    isAtSpawn: 0
+    healAtSpawnRate: 0
+    spawnPosition: {x: 0, y: 0, z: 0}
+    isFrenzyActive: 0
+    frenzyStartTime: 0
+    frenzyDuration: 30
+    cooldownReductionFactor: 0.5
     isEnraged: 0
     isRetreating: 0
     isEngaging: 0
-    isAttacking: 0
-    isScouting: 0
+    isFacingRight: 1
+    gameStartTime: 0
     spawnPoint: {fileID: 0}
+    phaseLevel: 1
+    hasRetreatedOnce: 0
+    totalUnitsSpawned: 0
+    lastPhaseChangeTime: 0
+    lastDarkBoltTime: 0
+    darkBoltCooldown: 3
+    darkBoltRange: 8
+    damage: 2
+    darkBoltPrefab: {fileID: 8554225165291830420, guid: 50a74b32b23369c4b8947e790eef2c84, type: 3}
+    darkBoltSpawnPoint: {fileID: 1019990177999778210}
+    waveActive: 0
+    commandIssued: 0
+    maxArmySize: 12
+    lastSummonTime: -10
+    summonCooldown: 40
+    skeletonsPerSummon: 4
+    summonRange: 3
+    skeletonPrefab: {fileID: 2369475197144453301, guid: 87d563383cb7369468ea9c95a8245429, type: 3}
+    lastBuffTime: 0
+    buffCooldown: 10
+    buffRange: 5
+    buffDamageMultiplier: 1.5
+    buffHealAmount: 2
+    hasBuffedAllies: 0
+    numberAllyHealed: 5
+    currentAreaCenter: {x: 0, y: 0, z: 0}
+    nextAreaCenter: {x: 0, y: 0, z: 0}
+    areaRadius: 10
+    readyToAdvance: 0
+    hasCommandedArmy: 0
+    lastAreaAdvanceTime: 0
+    allyDetectionRange: 5
+    nearbyAllies: []
+    allyLayerMask:
+      serializedVersion: 2
+      m_Bits: 512
 --- !u!114 &1935932175514981621
 MonoBehaviour:
   m_ObjectHideFlags: 0

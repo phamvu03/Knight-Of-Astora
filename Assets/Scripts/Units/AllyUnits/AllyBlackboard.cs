@@ -93,6 +93,7 @@ public class AllyBlackboard : MonoBehaviour
 
     public void ResetWarnState()
     {
+        detectedEnemies.Clear();
         isWarning = false;
         warnedEnemyPosition = Vector2.zero;
         receivedWarnSignal = false;

@@ -155,11 +155,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d175e950b14b8ce439f75561aa6fb74b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  abilitiesName: isFireballHit
-  abilitiesState: 0
-  damage: 1
   speed: 5
-  xAxis: -1
-  yAxis: -1
-  rotationZ: 0
-  target: {fileID: 6597577238280649097, guid: 7d5bff46aefc49548a4a028a71276dba, type: 3}
+  explosionRadius: 2
+  damage: 2
+  targetLayer:
+    serializedVersion: 2
+    m_Bits: 0

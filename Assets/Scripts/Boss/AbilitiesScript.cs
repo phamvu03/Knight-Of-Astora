@@ -1,58 +1,53 @@
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class AbilitiesScript : MonoBehaviour
 {
-    [Header("Abilities Stats")]
-    [SerializeField] private string abilitiesName;
-    [SerializeField] private bool abilitiesState;
-    [SerializeField] private float damage;
-    [SerializeField] private int speed;
-    public float xAxis;
-    public float yAxis;
+    public float speed = 8f;
+    public float explosionRadius = 2f;
+    public float damage = 50f;
+    public LayerMask targetLayer;
 
-    private Animator anim;
-    private int direction;
+    private Vector2 direction;
 
-    // Start is called before the first frame update
-    void Start()
+    public void Launch(Vector2 dir)
     {
-        Destroy(gameObject, 3f);
-        anim = GetComponent<Animator>();
-        abilitiesState = false;
-        direction = BossScript.instance.facingLeft ? 1 : -1;
-    }
-
-    private void FixedUpdate()
-    {
-        if (abilitiesState)
+        if(dir.x < 0)
         {
-            return;
+            Flip();
         }
-        transform.position += speed * new Vector3(xAxis * direction, yAxis, 0) * Time.deltaTime;
+        direction = dir.normalized;
     }
-    private void OnTriggerEnter2D(Collider2D other)
+    void Flip()
     {
-        if (other.tag == "Player")
+        Vector3 scale = transform.localScale;
+        scale.x *= -1;
+        transform.localScale = scale;
+    }
+
+    void Update()
+    {
+        transform.Translate(direction * speed * Time.deltaTime);
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        Explode();
+    }
+
+    void Explode()
+    {
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, explosionRadius, targetLayer);
+        foreach (var hit in hits)
         {
-            if (!PlayerController.Instance.playerState.invincible)
+            if (hit.GetComponent<PlayerController>() != null)
             {
-                abilitiesState = true;
-                anim.SetBool(abilitiesName, abilitiesState);
-                other.GetComponent<PlayerController>().TakeDamage(damage, anim.transform.position);
+                hit.GetComponent<PlayerController>().TakeDamage(damage, direction);
             }
-        }   
-        if (other.tag == "Ground" || other.tag == "Wall")
-        {
-            abilitiesState = true;
-            anim.SetBool(abilitiesName, abilitiesState);
+            if (hit.GetComponent<AllyUnitController>() != null)
+            {
+                hit.GetComponent<AllyUnitController>().TakeDamage(damage, direction);
+            }
         }
+        Destroy(gameObject, 1f);
     }
-    public void DestroyObj()
-    {
-        Destroy(gameObject);
-    }
-    
 }

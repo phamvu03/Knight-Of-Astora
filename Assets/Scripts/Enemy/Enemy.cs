@@ -7,6 +7,7 @@ public class Enemy : MonoBehaviour
 {
     [Header("Basic Stats:")]
     [SerializeField] protected float health;
+    [SerializeField] protected float maxHealth = 5f;
     //[SerializeField] protected float attackCooldown = 2f;
     [SerializeField] protected AudioClip dmgSoundClip;
     protected bool isFacingRight = false;
@@ -74,6 +75,8 @@ public class Enemy : MonoBehaviour
 
     public void Heal(float amount)
     {
+        if (health > maxHealth)
+            return;
         health += amount;
     }
 

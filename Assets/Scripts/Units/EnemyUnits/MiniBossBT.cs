@@ -38,22 +38,20 @@ public class MiniBossBT : MonoBehaviour
             new SequenceNode(new BTNode[]
             {
                 new ConditionNode(() => _controller.CanCastDarkBolt()),
+                new ActionNode(() => _controller.FaceTarget()),
                 new ActionNode(() => _controller.CastDarkBoltAtTarget())
             }),
             new SequenceNode(new BTNode[]
             {
-                new ConditionNode(() => _controller.CanSummonSkeletons()),
-                new ActionNode(() => _controller.SummonSkeletonsUntilLimit())
-            }),
-            new SequenceNode(new BTNode[]
-            {
                 new ConditionNode(() => _controller.CanBuffAllies()),
+                new ActionNode(() => _controller.FaceTarget()), 
                 new ActionNode(() => _controller.BuffAlliesDamageBoost())
             })
         });
         var engage = new SequenceNode(new BTNode[]
         {
             new ConditionNode(() => _controller.EnemyInRange()),
+            new ConditionNode(() => _controller.TargetIsAlive()),
             engageSelector
         });
 
@@ -62,13 +60,12 @@ public class MiniBossBT : MonoBehaviour
         {
             new ConditionNode(() => _controller.ReadyToAdvance()),
             new ActionNode(() => _controller.CommandArmyMoveToNextArea()),
-            new ActionNode(() => _controller.SetFlagEnemy())
         });
 
         // Command Sequence - maintain army and support allies
         var command = new SequenceNode(new BTNode[]
         {
-            new ConditionNode(() => _controller.ArmySizeBelowLimit()),
+            new ConditionNode(() => _controller.ArmySizeBelowLimit() && _controller.CanSummonSkeletons()),
             new ActionNode(() => _controller.SummonSkeletons()),
             new ActionNode(() => _controller.BuffAlliesHealNearby())
         });

@@ -33,17 +33,17 @@ public class AllyUnitBT : MonoBehaviour
         root = new SelectorNode(new BTNode[]
         {
             // Surrender/Last Stand State
-            new SequenceNode(new BTNode[]
-            {
-                new ConditionNode(() =>
-                    (blackboard.surrenderType == SurrenderType.None &&
-                        (blackboard.maxHP > 0 && (blackboard.currentHP / blackboard.maxHP) < blackboard.hpLowThreshold))
-                    || blackboard.isSurrendering || blackboard.isLastStand),
-                new ActionNode(() =>
-                {
-                    return controller.SurrenderAction() ? BehaviorState.Success : BehaviorState.Running;
-                })
-            }),
+            //new SequenceNode(new BTNode[]
+            //{
+            //    new ConditionNode(() =>
+            //        (blackboard.surrenderType == SurrenderType.None &&
+            //            (blackboard.maxHP > 0 && (blackboard.currentHP / blackboard.maxHP) < blackboard.hpLowThreshold))
+            //        || blackboard.isSurrendering || blackboard.isLastStand),
+            //    new ActionNode(() =>
+            //    {
+            //        return controller.SurrenderAction() ? BehaviorState.Success : BehaviorState.Running;
+            //    })
+            //}),
 
             // Pursue State
             new SequenceNode(new BTNode[]

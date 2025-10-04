@@ -321,11 +321,10 @@ public class AllyUnitController : MonoBehaviour
                 float safeDist = 6f;
                 if (distToTargetX < safeDist && !animator.GetCurrentAnimatorStateInfo(0).IsName("Archer_attack"))
                 {
-                    Debug.Log("run to safe position");
                     float runDir = Mathf.Sign(transform.position.x - target.position.x);
                     rb.velocity = new Vector2(runDir * blackboard.walkSpeed, 0);
                     animator.SetBool("IsMoving", true);
-                    if ((runDir > 0 && !facingRight || runDir < 0 && facingRight) && !animator.GetCurrentAnimatorStateInfo(0).IsName("Archer_attack"))
+                    if (runDir > 0 && !facingRight || runDir < 0 && facingRight)
                     {
                         Flip();
                     }
