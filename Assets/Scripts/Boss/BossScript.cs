@@ -166,13 +166,13 @@ public class BossScript : Enemy
     void BarrageBendDown() 
     {
         attacking = true;
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
         fireballAttack = true;
         anim.SetTrigger("Fireball");
     }
     public IEnumerator Barrage()
     {
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
         float currentAngle = 0f;
         GameObject projectile = Instantiate(FireBall, abilitiesSpawn.position, Quaternion.identity);
         if (facingLeft)
@@ -198,7 +198,7 @@ public class BossScript : Enemy
     void TripleAttack()
     {
         attacking = true;
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
         tripleAttack = true;
         anim.SetTrigger("TripleFireball");
     }
@@ -214,7 +214,7 @@ public class BossScript : Enemy
     public IEnumerator TripleBarrage()
     {
         //Set boss velocity to 0
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
         
         float currentAngle = 0f;
         for (int i = 0; i < 3; i++)
@@ -270,7 +270,7 @@ public class BossScript : Enemy
     {
         ResetAllAttack();
         alive = false;
-        rb.velocity = new Vector2(rb.velocity.x, -25);
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, -25);
         anim.SetTrigger("Die");
     }
     public void DestroyAfterDeath()

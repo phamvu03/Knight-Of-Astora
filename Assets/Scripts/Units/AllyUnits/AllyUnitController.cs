@@ -55,7 +55,7 @@ public class AllyUnitController : MonoBehaviour
             if (dist > 2.5f)
             {
                 float dirX = Mathf.Sign(followTargetPlayer.position.x - transform.position.x);
-                rb.velocity = new Vector2(dirX * blackboard.walkSpeed, 0);
+                rb.linearVelocity = new Vector2(dirX * blackboard.walkSpeed, 0);
                 animator.SetBool("IsMoving", true);
                 if (dirX > 0 && !facingRight || dirX < 0 && facingRight)
                 {
@@ -64,7 +64,7 @@ public class AllyUnitController : MonoBehaviour
             }
             else
             {
-                rb.velocity = Vector2.zero;
+                rb.linearVelocity = Vector2.zero;
                 animator.SetBool("IsMoving", false);
             }
         }
@@ -73,7 +73,7 @@ public class AllyUnitController : MonoBehaviour
         if (waitingAtPatrolPoint)
         {
             patrolWaitTimer += Time.deltaTime;
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
             animator.SetBool("IsMoving", false);
             if (patrolWaitTimer >= patrolWaitDuration)
             {
@@ -88,7 +88,7 @@ public class AllyUnitController : MonoBehaviour
         isFollowingPlayer = true;
         followTargetPlayer = player;
         blackboard.isPatrolling = false;
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
         animator.SetBool("IsMoving", false);
     }
 
@@ -97,7 +97,7 @@ public class AllyUnitController : MonoBehaviour
         isFollowingPlayer = false;
         followTargetPlayer = null;
         blackboard.isPatrolling = true;
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
         animator.SetBool("IsMoving", false);
     }
 
@@ -122,13 +122,13 @@ public class AllyUnitController : MonoBehaviour
         }
         // Move towards patrol point with fixed speed (avoid slowing down near target)
         float moveSpeed = blackboard.walkSpeed;
-        rb.velocity = new Vector2(Mathf.Sign(targetPoint.position.x - transform.position.x) * moveSpeed, 0);
+        rb.linearVelocity = new Vector2(Mathf.Sign(targetPoint.position.x - transform.position.x) * moveSpeed, 0);
         animator.SetBool("IsMoving", true);
 
         // Check if we've reached the current patrol point
         if (Vector2.Distance(transform.position, targetPoint.position) <= 2.2f)
         {
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
             animator.SetBool("IsMoving", false);
             blackboard.currentPatrolIndex = (blackboard.currentPatrolIndex + 1) % blackboard.patrolPoints.Length;
             waitingAtPatrolPoint = true;
@@ -184,7 +184,7 @@ public class AllyUnitController : MonoBehaviour
             if (dist > stopDist)
             {
                 float dirX = Mathf.Sign(blackboard.warnedEnemyPosition.x - transform.position.x);
-                rb.velocity = new Vector2(dirX * (blackboard.walkSpeed), 0);
+                rb.linearVelocity = new Vector2(dirX * (blackboard.walkSpeed), 0);
                 animator.SetBool("IsMoving", true);
                 if (dirX > 0 && !facingRight || dirX < 0 && facingRight)
                 {
@@ -194,7 +194,7 @@ public class AllyUnitController : MonoBehaviour
             }
             else
             {
-                rb.velocity = Vector2.zero;
+                rb.linearVelocity = Vector2.zero;
                 animator.SetBool("IsMoving", false);
                 
                 // If no enemy detected anymore, back to patrol
@@ -234,7 +234,7 @@ public class AllyUnitController : MonoBehaviour
                 // Target is destroyed, reset to patrol
                 blackboard.ResetEngageState();
                 blackboard.ResetWarnState();
-                rb.velocity = Vector2.zero;
+                rb.linearVelocity = Vector2.zero;
                 animator.SetBool("IsMoving", false);
                 return true;
             }
@@ -246,7 +246,7 @@ public class AllyUnitController : MonoBehaviour
             blackboard.currentTarget = null;
             blackboard.ResetEngageState();
             blackboard.ResetWarnState();
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
             animator.SetBool("IsMoving", false);
             return true;
         }
@@ -272,7 +272,7 @@ public class AllyUnitController : MonoBehaviour
             blackboard.currentTarget = null;
             blackboard.ResetEngageState();
             blackboard.ResetWarnState();
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
             animator.SetBool("IsMoving", false);
             return true;
         }
@@ -304,12 +304,12 @@ public class AllyUnitController : MonoBehaviour
             case AllyCombatType.Melee:
                 if (distToTargetX > 1.2f)
                 {
-                    rb.velocity = new Vector2(Mathf.Sign(target.position.x - transform.position.x) * blackboard.walkSpeed, 0);
+                    rb.linearVelocity = new Vector2(Mathf.Sign(target.position.x - transform.position.x) * blackboard.walkSpeed, 0);
                     animator.SetBool("IsMoving", true);
                 }
                 else
                 {
-                    rb.velocity = Vector2.zero;
+                    rb.linearVelocity = Vector2.zero;
                     animator.SetBool("IsMoving", false);
                     animator.SetTrigger("Attack");
                     if (Random.value < 0.2f)
@@ -322,7 +322,7 @@ public class AllyUnitController : MonoBehaviour
                 if (distToTargetX < safeDist && !animator.GetCurrentAnimatorStateInfo(0).IsName("Archer_attack"))
                 {
                     float runDir = Mathf.Sign(transform.position.x - target.position.x);
-                    rb.velocity = new Vector2(runDir * blackboard.walkSpeed, 0);
+                    rb.linearVelocity = new Vector2(runDir * blackboard.walkSpeed, 0);
                     animator.SetBool("IsMoving", true);
                     if (runDir > 0 && !facingRight || runDir < 0 && facingRight)
                     {
@@ -331,7 +331,7 @@ public class AllyUnitController : MonoBehaviour
                 }
                 else if (distToTargetX <= blackboard.engageRange)
                 {
-                    rb.velocity = Vector2.zero;
+                    rb.linearVelocity = Vector2.zero;
                     animator.SetBool("IsMoving", false);
                     if ((dirToTarget.x > 0 && !facingRight) || (dirToTarget.x < 0 && facingRight))
                     {
@@ -355,7 +355,7 @@ public class AllyUnitController : MonoBehaviour
                         break;
                     }
                 }
-                rb.velocity = Vector2.zero;
+                rb.linearVelocity = Vector2.zero;
                 animator.SetBool("IsMoving", false);
                 break;
         }
@@ -387,7 +387,7 @@ public class AllyUnitController : MonoBehaviour
             if (dist > 0.5f)
             {
                 float dirX = Mathf.Sign(blackboard.lastKnownEnemyPosition.x - transform.position.x);
-                rb.velocity = new Vector2(dirX * blackboard.walkSpeed, 0);
+                rb.linearVelocity = new Vector2(dirX * blackboard.walkSpeed, 0);
                 animator.SetBool("IsMoving", true);
                 
                 if (dirX > 0 && !facingRight || dirX < 0 && facingRight)
@@ -397,7 +397,7 @@ public class AllyUnitController : MonoBehaviour
             }
             else
             {
-                rb.velocity = Vector2.zero;
+                rb.linearVelocity = Vector2.zero;
                 animator.SetBool("IsMoving", false);
             }
             
@@ -422,7 +422,7 @@ public class AllyUnitController : MonoBehaviour
         }
         // Move towards current target
         float dirX2 = Mathf.Sign(blackboard.currentTarget.position.x - transform.position.x);
-        rb.velocity = new Vector2(dirX2 * blackboard.walkSpeed, 0);
+        rb.linearVelocity = new Vector2(dirX2 * blackboard.walkSpeed, 0);
         animator.SetBool("IsMoving", true);
         
         float distToTarget = Vector2.Distance(transform.position, blackboard.currentTarget.position);
@@ -447,7 +447,7 @@ public class AllyUnitController : MonoBehaviour
         if (blackboard.surrenderTargetBase != null)
         {
             float dirX = Mathf.Sign(blackboard.surrenderTargetBase.position.x - transform.position.x);
-            rb.velocity = new Vector2(dirX * blackboard.walkSpeed * 1.2f, 0);
+            rb.linearVelocity = new Vector2(dirX * blackboard.walkSpeed * 1.2f, 0);
             animator.SetBool("IsMoving", true);
             float dist = Vector2.Distance(transform.position, blackboard.surrenderTargetBase.position);
             if (dirX > 0 && !facingRight || dirX < 0 && facingRight)
@@ -456,18 +456,18 @@ public class AllyUnitController : MonoBehaviour
             }
             if (dist > 0.5f)
             {
-                rb.velocity = new Vector2(dirX, 0) * blackboard.walkSpeed * 1.2f;
+                rb.linearVelocity = new Vector2(dirX, 0) * blackboard.walkSpeed * 1.2f;
                 animator.SetBool("IsMoving", true);
             }
             else
             {
-                rb.velocity = Vector2.zero;
+                rb.linearVelocity = Vector2.zero;
                 animator.SetBool("IsMoving", false);
             }
         }
         else
         {
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
             animator.SetBool("IsMoving", false);
         }
         return false;

@@ -77,7 +77,7 @@ public class Skeleton : Enemy
     {
         // Idle is now a fallback/rest state, not a decision hub
         anim.SetBool("Walk", false);
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
         
         // Simple detection with immediate action (for cases when called from other states)
         Transform nearestTarget = FindNearestEnemyTarget();
@@ -265,7 +265,7 @@ public class Skeleton : Enemy
             return;
         }
 
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
         // Check if the target is in front
         Vector2 directionToTarget = (currentTarget.position - transform.position).normalized;
         float deltaX = currentTarget.position.x - transform.position.x;
@@ -306,7 +306,7 @@ public class Skeleton : Enemy
         if (!isDeath)
         {
             isDeath = true;
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
             Destroy(gameObject, 1f);
         }
     }
@@ -314,7 +314,7 @@ public class Skeleton : Enemy
     {
         if (anim.GetCurrentAnimatorStateInfo(0).IsName("Ske_Hurt"))
         {
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
             return;
         }
         if (currentTarget != null)

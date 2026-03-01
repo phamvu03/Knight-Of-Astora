@@ -293,7 +293,7 @@ public class Bat : Enemy
         {
             currentPath = null;
             transform.position = originalPos;
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
             ChangeState(EnemyStates.IDLE);
             return;
         }
@@ -313,7 +313,7 @@ public class Bat : Enemy
         {
             ChangeState(EnemyStates.IDLE);
         }
-        rb.velocity = Vector2.zero;        
+        rb.linearVelocity = Vector2.zero;        
     }
     void Death()
     {
@@ -370,13 +370,13 @@ public class Bat : Enemy
         Vector2 lungeDirection = ((Vector2)currentTarget.position - (Vector2)transform.position).normalized;
         rb.AddForce(lungeDirection * lungeForce, ForceMode2D.Impulse);
         yield return new WaitForSeconds(lungeDuration);
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
         
         // Retreat back to the original 
         Vector2 retreatDirection = (-1) * lungeDirection;
         rb.AddForce(retreatDirection * retreatForce, ForceMode2D.Impulse);
         yield return new WaitForSeconds(retreatDuration);
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
 
         // Return to CHASE state after the attack
         ChangeState(EnemyStates.CHASE);

@@ -38,7 +38,7 @@ public class Boss_Jump : StateMachineBehaviour
     {
         if (PlayerController.Instance.IsOnGround())
         {
-            rb.velocity = Vector2.zero;
+            rb.linearVelocity = Vector2.zero;
             float gravity = rb.gravityScale;                        
             float maxHeight = BossScript.instance.jumpForce;        
             float timeToPeak = Mathf.Sqrt(2 * maxHeight / gravity); 
@@ -46,9 +46,9 @@ public class Boss_Jump : StateMachineBehaviour
             int direction = BossScript.instance.facingLeft ? -1 : 1;
             float velocityX = distanceX * direction / totalTime;
             float velocityY = Mathf.Sqrt(2 * gravity * maxHeight);  
-            rb.velocity = new Vector2(velocityX, velocityY);        //-> Important!!
+            rb.linearVelocity = new Vector2(velocityX, velocityY);        //-> Important!!
 
-            rb.AddForce(rb.velocity, ForceMode2D.Impulse);
+            rb.AddForce(rb.linearVelocity, ForceMode2D.Impulse);
         }
         if (distanceX <= BossScript.instance.attackRange)
         {

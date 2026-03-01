@@ -150,7 +150,7 @@ public class BatController : MonoBehaviour
 
     public BehaviorState IdleAction()
     {
-        _rb.velocity = Vector2.zero;
+        _rb.linearVelocity = Vector2.zero;
         isChasing = false;
         isReturning = false;
 

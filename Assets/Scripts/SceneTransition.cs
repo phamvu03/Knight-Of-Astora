@@ -17,7 +17,7 @@ public class SceneTransition : MonoBehaviour
         if (other.CompareTag("Player") && !isActive)
         {
             isActive = true;
-            exitDirection = PlayerController.Instance.playerRb.velocity;
+            exitDirection = PlayerController.Instance.playerRb.linearVelocity;
             GameManager.Instance.setTransitionPoint(startPoint.position, exitDirection);
             NextLevel();            
         }

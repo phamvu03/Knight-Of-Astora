@@ -16,7 +16,7 @@ public class Boss_Lunge : StateMachineBehaviour
     {
         rb.gravityScale = 0;
         int dir = BossScript.instance.facingLeft ? 1 : -1;
-        rb.velocity = new Vector2( dir * BossScript.instance.speed * 5, 0f);
+        rb.linearVelocity = new Vector2( dir * BossScript.instance.speed * 5, 0f);
         //rb.transform.x += 
         if (Vector2.Distance(rb.position, PlayerController.Instance.transform.position) <= BossScript.instance.attackRange
             && !BossScript.instance.dmgPlayer)
